@@ -1,0 +1,9 @@
+#vim backup
+*~
+#Debug directory
+Debug/
+
+#object files
+*.o
+*.so
+*.d
