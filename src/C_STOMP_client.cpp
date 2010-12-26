@@ -37,7 +37,7 @@ C_STOMP_client::C_STOMP_client(string _host, UInt16 _port,
 }
 
 C_STOMP_client::~C_STOMP_client() {
-	// TODO Auto-generated destructor stub
+	// TODO Auto-generated dtor stub
 }
 
 void C_STOMP_client::connect() {
@@ -51,7 +51,7 @@ void C_STOMP_client::connect() {
 	msg += "login:dontcare" + '\n';
 	msg += "passcode:dontcare" + '\n';
 	msg += '\n';
-	msg += char(0); //FIXME: add control char!
+	msg += '\0';
 	send(msg);
 }
 /**
