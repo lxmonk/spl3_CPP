@@ -7,7 +7,7 @@
 
 #include "Client.h"
 
-Client::Client() : conn() {
+Client::Client()  {
 	// TODO Auto-generated constructor stub
 
 }

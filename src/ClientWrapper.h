@@ -7,26 +7,28 @@
 
 #ifndef CLIENTWRAPPER_H_
 #define CLIENTWRAPPER_H_
-
+#include "Client.h"
 #include "Poco/Mutex.h"
-class Client;
+#include "boost/shared_ptr.hpp"
+
+//class Client;
 using Poco::Mutex;
 
 class ClientWrapper {
 
 public:
 	ClientWrapper();
-	ClientWrapper(Client *_client);
+	ClientWrapper(boost::shared_ptr<Client> client);
 	virtual ~ClientWrapper();
-	ClientWrapper(const ClientWrapper& _cw) {
-		*this = _cw;
+	ClientWrapper(const ClientWrapper& clientWrapper) {
+		*this = clientWrapper;
 	}
-	ClientWrapper& operator=(const ClientWrapper& _cw);
-	Client* getClient();
+	ClientWrapper& operator=(const ClientWrapper& clientWrapper);
+	boost::shared_ptr<Client> getClientPtr();
 	Mutex mutex;
 
 private:
-	Client *client;
+	boost::shared_ptr<Client> mpClient;
 };
 
 #endif /* CLIENTWRAPPER_H_ */

@@ -1,5 +1,5 @@
 /*
- * C_STOMP_client.h
+ * CStompClient.h
  *
  *  Created on: Dec 25, 2010
  *      Author: Tom and Aviad
@@ -17,8 +17,7 @@
 #include <iostream>
 #include "ClientWrapper.h"
 
-
-enum STOMP_command {
+enum StompCommand {
 	NOCOMMAND = -1,
 	CONNECT = 0,
 	CONNECTED,
@@ -30,47 +29,48 @@ enum STOMP_command {
 	ACK
 };
 
-class C_STOMP_client {
+class CStompClient {
 private:
-	std::string host;
-	Poco::UInt16 port;
+	std::string mHost;
+	Poco::UInt16 mPort;
 	Poco::Net::SocketAddress sa;
-	Poco::Net::StreamSocket socket;
+	Poco::Net::StreamSocket mSocket;
 	Poco::Net::SocketStream str;
 	Poco::ThreadPool pool;
 	ClientWrapper client;
-	bool is_connected;
-	std::string session_id;
+	bool isConnected;
+	std::string mSessionId;
+	std::string mClientName;
 
 public:
-	C_STOMP_client();
+	CStompClient();
 
-	C_STOMP_client(ClientWrapper _client);
+	CStompClient(ClientWrapper _client);
 
-			C_STOMP_client(std::string _host, Poco::UInt16 _port,
+			CStompClient(std::string _host, Poco::UInt16 _port,
 					ClientWrapper _client);
 
-	virtual ~C_STOMP_client();
+	virtual ~CStompClient();
 
-	void send(std::string msg);
+	void Send(std::string msg);
 
 	/**
-	 * Receive a message from the STOMP server.
+	 * Receive a MessageRecv from the STOMP server.
 	 * This is blocking.
 	 */
-	void receive();
+	void ReceiveLoop();
 
-	Poco::UInt16 get_STOMP_command(char* buffer);
+	Poco::UInt16 StompCommandToBuf(char* buffer);
 
-	Poco::UInt16 str2command(std::string command);
-	void connect();
-	void connected(char* buffer, Poco::UInt16 len);
-	void message(char* buffer, Poco::UInt16 len);
-//	void ack(char* buffer, Poco::UInt16 len);
-	bool need_ack(char *buffer, Poco::UInt16 len);
-	void parse_trading_message(std::string raw_input, STOMP_command *command);
-	void handle_trading_message(std::string input);
-
+	Poco::UInt16 Str2Command(std::string command);
+	void Connect();
+	void ConnectedRecv(char* buffer, Poco::UInt16 len);
+	void MessageRecv(char* buffer, Poco::UInt16 len);
+	//	void ack(char* buffer, Poco::UInt16 len);
+	bool IsAckNeeded(char *buffer, Poco::UInt16 len);
+	void ParseTradingMessage(std::string raw_input, StompCommand *command);
+	void HandleTradingMessage(std::string input);
+	void ClearBuf(char* buf, int len);
 
 };
 
