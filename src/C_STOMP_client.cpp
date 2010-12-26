@@ -7,6 +7,7 @@
 
 #include "C_STOMP_client.h"
 #include <iostream>
+#include "Poco/Mutex.h"
 
 using namespace std;
 using namespace Poco;
@@ -133,6 +134,10 @@ void C_STOMP_client::message(char* buffer, Poco::UInt16 len) {
 void C_STOMP_client::handle_trading_message(string raw_content) {
 	STOMP_command command(NOCOMMAND);
 	parse_trading_message(raw_content, &command);
+	//parse command to actions
+	Poco::Mutex::ScopedLock lock(client.mutex);
+	client.getClient()/*->make some changes */;
+	// Here the Mutex is implicitly released and the Client is "unlocked".
 }
 void C_STOMP_client::parse_trading_message(string content, STOMP_command *command) {
 

@@ -22,3 +22,9 @@ ClientWrapper& ClientWrapper::operator=(const ClientWrapper& _cw) {
 	}
 	return *this;
 }
+
+Client* ClientWrapper::getClient() {
+//	Mutex::ScopedLock lock(mutex);
+	return client;
+
+}

@@ -22,10 +22,11 @@ public:
 		*this = _cw;
 	}
 	ClientWrapper& operator=(const ClientWrapper& _cw);
-	Client *client;
+	Client* getClient();
+	Mutex mutex;
 
 private:
-	Mutex mutex;
+	Client *client;
 };
 
 #endif /* CLIENTWRAPPER_H_ */
