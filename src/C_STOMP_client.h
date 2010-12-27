@@ -15,9 +15,10 @@
 #include "Poco/RunnableAdapter.h"
 #include <string>
 #include <iostream>
+#include <list>
 #include "ClientWrapper.h"
 
-enum StompCommand {
+/*enum StompCommand {
 	NO_STOMP_COMMAND = -1,
 	CONNECT = 0,
 	STOMP_CONNECTED,
@@ -45,7 +46,7 @@ enum TradingCommand {
 	DEAL_SOLD,
 	DEAL_BOUGHT,
 	STATE //only from user
-};
+};*/
 
 class CStompClient {
 private:
@@ -86,7 +87,7 @@ public:
 	void MessageRecv(char* buffer, Poco::UInt16 len);
 	//	void ack(char* buffer, Poco::UInt16 len);
 	bool IsAckNeeded(char *buffer, Poco::UInt16 len);
-	void ParseTradingMessage(std::string raw_input, StompCommand *command);
+	void ParseTradingMessage(std::string raw_input, TradingCommand* command, std::list<std::string>* args);
 	void HandleTradingMessage(std::string input);
 	void ClearBuf(char* buf, int len);
 

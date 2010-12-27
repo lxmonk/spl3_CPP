@@ -132,7 +132,7 @@ void CStompClient::ConnectedRecv(char* buffer, Poco::UInt16 len) {
 	c++; // leave the ':' behind.
 	while (buffer[c] == ' ') c++; // go over whitespaces
 	if (header == "session") { //no session-id is given
-		for (c; c < len && buffer[c] != '\n' && buffer[c] != ' '; c++) {
+		for (; c < len && buffer[c] != '\n' && buffer[c] != ' '; c++) {
 			mSessionId += buffer[c];
 		}
 	}
@@ -146,7 +146,7 @@ void CStompClient::MessageRecv(char* buffer, Poco::UInt16 len) {
 	size_t start = msg.find("\n\n");
 	if (start != string::npos) { // this MessageRecv contains content. it's only 1 line - get it!
 		start += 2; //leave the "\n\n" behind.
-		for (start; start < len && buffer[start] != '\n'; start++) {
+		for (; start < len && buffer[start] != '\n'; start++) {
 			content += buffer[start];
 		}
 		content += '\n';//the trading protocol requires '\n' at the end.
@@ -159,23 +159,23 @@ void CStompClient::MessageRecv(char* buffer, Poco::UInt16 len) {
 //}
 
 void CStompClient::HandleTradingMessage(string raw_content) {
-	TradingCommand command(NO_STOMP_COMMAND);
-	list args;
+	TradingCommand command(NONE);
+	list<string> args;
 	//parse command to actions
 	ParseTradingMessage(raw_content, &command, &args);
-	switch (command) {
-		case :
-
-			break;
-		default:
-			break;
-	}
+//	switch (command) {
+//		case :
+//
+//			break;
+//		default:
+//			break;
+//	}
 	Poco::Mutex::ScopedLock lock(mClientWrapper.mutex);
 	mClientWrapper.getClientPtr()/*->make some changes */;
 	// Here the Mutex is implicitly released and the Client is "unlocked".
 }
 void CStompClient::ParseTradingMessage(string content,
-		StompCommand* command, list* args) {
+		TradingCommand* command, list<string>* args) {
 
 }
 UInt16 CStompClient::StompCommandToBuf(char *buffer) {

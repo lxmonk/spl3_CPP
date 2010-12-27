@@ -7,3 +7,6 @@ Debug/
 *.o
 *.so
 *.d
+# ignore desc directory
+desc/
+
