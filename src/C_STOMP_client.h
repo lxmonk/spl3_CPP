@@ -18,9 +18,9 @@
 #include "ClientWrapper.h"
 
 enum StompCommand {
-	NOCOMMAND = -1,
+	NO_STOMP_COMMAND = -1,
 	CONNECT = 0,
-	CONNECTED,
+	STOMP_CONNECTED,
 	DISCONNECT,
 	SUBSCRIBE,
 	UNSUBSCRIBE,
@@ -29,16 +29,34 @@ enum StompCommand {
 	ACK
 };
 
+enum TradingCommand {
+	NONE = -1,
+	LOGIN = 0,
+	TRADING_CONNECTED,
+	CONNECT_FAILED,
+	BUY_ORDER,
+	SELL_ORDER,
+	ERROR,
+	CLOSE_DAY,
+	TRADING_DISCONNECT,
+	TRADING_DISCONNECTED,
+	NEW_DAY,
+	PRICES,
+	DEAL_SOLD,
+	DEAL_BOUGHT,
+	STATE //only from user
+};
+
 class CStompClient {
 private:
 	std::string mHost;
 	Poco::UInt16 mPort;
-	Poco::Net::SocketAddress sa;
+	Poco::Net::SocketAddress mSocketAddress;
 	Poco::Net::StreamSocket mSocket;
-	Poco::Net::SocketStream str;
-	Poco::ThreadPool pool;
-	ClientWrapper client;
-	bool isConnected;
+	Poco::Net::SocketStream mSocketStream;
+	Poco::ThreadPool mThreadPool;
+	ClientWrapper mClientWrapper;
+	bool IsConnected;
 	std::string mSessionId;
 	std::string mClientName;
 

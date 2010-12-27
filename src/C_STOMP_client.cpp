@@ -15,28 +15,28 @@ using namespace Poco;
 using namespace Poco::Net;
 
 CStompClient::CStompClient() :
-	mHost("localhost"), mPort(61613), sa(mHost, mPort), mSocket(sa), str(mSocket),
+	mHost("localhost"), mPort(61613), mSocketAddress(mHost, mPort), mSocket(mSocketAddress), mSocketStream(mSocket),
 			mClientName("NONAME") {
 
 }
 
 CStompClient::CStompClient(ClientWrapper _client) :
-	mHost("localhost"), mPort(61613), sa(mHost, mPort), mSocket(sa), str(mSocket),
+	mHost("localhost"), mPort(61613), mSocketAddress(mHost, mPort), mSocket(mSocketAddress), mSocketStream(mSocket),
 			mClientName((_client.getClientPtr())->GetName()) {
-	client = _client; //FIXME chnage to client(_client) after implementing
+	mClientWrapper = _client; //FIXME chnage to mClientWrapper(_client) after implementing
 	//	Client. also in the next ctor.
 	//	RunnableAdapter<CStompClient> sender;
 	//	RunnableAdapter<CStompClient> receiver(*this, &CStompClient::ReceiveLoop);
-	//	pool.start(receiver);
+	//	mThreadPool.start(receiver);
 }
 
 CStompClient::CStompClient(string _host, UInt16 _port,
 		ClientWrapper _client) :
-	mHost(_host), mPort(_port), sa(mHost, mPort), mSocket(sa), str(mSocket) {
-	client = _client;
+	mHost(_host), mPort(_port), mSocketAddress(mHost, mPort), mSocket(mSocketAddress), mSocketStream(mSocket) {
+	mClientWrapper = _client;
 	//	RunnableAdapter<CStompClient> sender;
 	//	RunnableAdapter<CStompClient> receiver(*this, &CStompClient::ReceiveLoop);
-	//	pool.start(receiver);
+	//	mThreadPool.start(receiver);
 }
 
 CStompClient::~CStompClient() {
@@ -45,7 +45,7 @@ CStompClient::~CStompClient() {
 
 void CStompClient::Connect() {
 	try {
-		mSocket.connect(sa);
+		mSocket.connect(mSocketAddress);
 	} catch (Exception e) {
 		//TODO: log this exception (should not happen)
 	}
@@ -64,11 +64,11 @@ void CStompClient::Connect() {
 	UInt16 len = -1;
 	len = mSocket.receiveBytes(&buf, 1023); //recieve up to 1023 chars.
 	UInt16 command = StompCommandToBuf(buf);
-	if (command == NOCOMMAND) { //this is not a legal command, ignore it.
+	if (command == NO_STOMP_COMMAND) { //this is not a legal command, ignore it.
 		cout << "bad command. C_STOMP_client.cpp:67\n";//TODO: add some logging to track this error.
-	} else if (command == CONNECTED) {
+	} else if (command == STOMP_CONNECTED) {
 		ConnectedRecv(buf, len);
-	} else { // these commands are illegal for the client to ReceiveLoop
+	} else { // these commands are illegal for the mClientWrapper to ReceiveLoop
 		// ignore them. TODO: add some logging to track this event.
 	}
 }
@@ -77,10 +77,10 @@ void CStompClient::Connect() {
  * This function is in charge of translating the MessageRecv to the trading protocol
  * and later to the STOMP protocol. */
 void CStompClient::Send(string msg) {
-	str << msg << '\0';
-	str.flush();
-	//	str << '\0';
-	//	str.flush();
+	mSocketStream << msg << '\0';
+	mSocketStream.flush();
+	//	mSocketStream << '\0';
+	//	mSocketStream.flush();
 }
 
 void CStompClient::ReceiveLoop() {
@@ -101,9 +101,9 @@ void CStompClient::ReceiveLoop() {
 		 }*/// end of commented block
 		cout << "got message\n"; //FIXME: delete this
 		UInt16 command = StompCommandToBuf(buffer);
-		if (command == NOCOMMAND) { //this is not a legal command, ignore it.
+		if (command == NO_STOMP_COMMAND) { //this is not a legal command, ignore it.
 			break; //TODO: add some logging to track this error.
-		} else if (command == CONNECTED) {
+		} else if (command == STOMP_CONNECTED) {
 			ConnectedRecv(buffer, len);
 			break;
 		} else if (command == MESSAGE) {
@@ -111,7 +111,7 @@ void CStompClient::ReceiveLoop() {
 			break;
 			//		} else if (command == ACK) {
 			//			ack(buffer, len);
-		} else { // these commands are illegal for the client to ReceiveLoop
+		} else { // these commands are illegal for the mClientWrapper to ReceiveLoop
 			break; // ignore them. TODO: add some logging to track this event.
 		}
 		//
@@ -121,10 +121,10 @@ void CStompClient::ReceiveLoop() {
 
 void CStompClient::ConnectedRecv(char* buffer, Poco::UInt16 len) {
 	cout << "connection established" << endl;
-	isConnected = true;
+	IsConnected = true;
 	string header;
 	// the mSessionId identifier will start after the "session: " header
-	// ( |CONNECTED\n| = 10, |session: | = 9)
+	// ( |STOMP_CONNECTED\n| = 10, |session: | = 9)
 	UInt16 c;
 	for (c = 10; c < len && buffer[c] != ':'; c++) {
 		header += buffer[c];
@@ -138,7 +138,7 @@ void CStompClient::ConnectedRecv(char* buffer, Poco::UInt16 len) {
 	}
 	// start the receiver as a separate thread
 	RunnableAdapter<CStompClient> receiver(*this, &CStompClient::ReceiveLoop);
-	pool.start(receiver);
+	mThreadPool.start(receiver);
 }
 void CStompClient::MessageRecv(char* buffer, Poco::UInt16 len) {
 	string msg(buffer, len);
@@ -159,15 +159,23 @@ void CStompClient::MessageRecv(char* buffer, Poco::UInt16 len) {
 //}
 
 void CStompClient::HandleTradingMessage(string raw_content) {
-	StompCommand command(NOCOMMAND);
-	ParseTradingMessage(raw_content, &command);
+	TradingCommand command(NO_STOMP_COMMAND);
+	list args;
 	//parse command to actions
-	Poco::Mutex::ScopedLock lock(client.mutex);
-	client.getClientPtr()/*->make some changes */;
+	ParseTradingMessage(raw_content, &command, &args);
+	switch (command) {
+		case :
+
+			break;
+		default:
+			break;
+	}
+	Poco::Mutex::ScopedLock lock(mClientWrapper.mutex);
+	mClientWrapper.getClientPtr()/*->make some changes */;
 	// Here the Mutex is implicitly released and the Client is "unlocked".
 }
 void CStompClient::ParseTradingMessage(string content,
-		StompCommand *command) {
+		StompCommand* command, list* args) {
 
 }
 UInt16 CStompClient::StompCommandToBuf(char *buffer) {
@@ -193,7 +201,7 @@ UInt16 CStompClient::Str2Command(string command) {
 	if (command == "CONNECT")
 		return CONNECT;
 	else if (command == "CONNECTED")
-		return CONNECTED;
+		return STOMP_CONNECTED;
 	else if (command == "DISCONNECT")
 		return DISCONNECT;
 	else if (command == "SUBSCRIBE")
